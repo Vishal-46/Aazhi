@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="AAZHI mark">
+  <rect x="2" y="2" width="60" height="60" rx="18" fill="#FCFAF6" stroke="#1C1A17" stroke-width="2.5"/>
+  <text x="32" y="40" text-anchor="middle" font-family="Gabarito, Inter, sans-serif" font-weight="700" font-size="24" fill="#1C1A17">a</text>
+  <path d="M14 46 C 24 42, 32 48, 42 44 S 50 42, 52 44" fill="none" stroke="#D9480F" stroke-width="3" stroke-linecap="round"/>
+</svg>
