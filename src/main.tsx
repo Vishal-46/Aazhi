@@ -1,7 +1,10 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import './styles/globals.css';
-import './styles/cinematic.css';
+import './ref/styles.css';
+import './ref/About.css';
+import './ref/certificate-showcase.css';
+import './ref/ref-extra.css';
+import './ref/forms.css';
 import App from './App';
 
 const rootEl = document.getElementById('root');

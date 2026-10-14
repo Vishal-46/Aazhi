@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
-import { team } from '../data/content';
+import { coreRoles, team } from '../data/content';
 import { go } from '../lib/route';
 
 type TeamStep = '0' | '1' | '2' | 'all';
@@ -12,7 +12,7 @@ function normalise(param?: string): TeamStep {
 
 function initials(name: string): string {
   const clean = name.trim();
-  if (!clean || clean.toLowerCase().startsWith('third')) return 'Aa';
+  if (!clean) return 'Aa';
   const parts = clean.split(/\s+/).filter(Boolean);
   if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
@@ -26,12 +26,21 @@ export default function FoundersScene({ stepParam }: { stepParam?: string }) {
   const index = isOverview ? -1 : Number(step);
   const member = !isOverview ? team[index] : undefined;
   const [imgOk, setImgOk] = useState(true);
+  const [autoPaused, setAutoPaused] = useState(false);
   const touchX = useRef<number | null>(null);
 
   // Reset image fallback whenever the focused founder changes.
   useEffect(() => {
     setImgOk(true);
   }, [step]);
+
+  useEffect(() => {
+    if (isOverview || autoPaused) return;
+    const timer = window.setInterval(() => {
+      go(`#/team/${(index + 1) % team.length}`);
+    }, 5600);
+    return () => window.clearInterval(timer);
+  }, [autoPaused, index, isOverview]);
 
   const goStep = useCallback((s: TeamStep) => {
     go(`#/team/${s}`);
@@ -84,17 +93,24 @@ export default function FoundersScene({ stepParam }: { stepParam?: string }) {
   return (
     <section
       className="cine-scene"
-      aria-label={isOverview ? 'Core team overview' : `Founder ${index + 1} of 3`}
+      aria-label={isOverview ? 'Team overview' : `Team member ${index + 1} of 3`}
+      onMouseEnter={() => setAutoPaused(true)}
+      onMouseLeave={() => setAutoPaused(false)}
+      onFocus={() => setAutoPaused(true)}
+      onBlur={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setAutoPaused(false);
+      }}
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
       <div className="cine-inner">
         <p className="cine-eyebrow cine-rise" style={{ ['--d' as string]: '0ms' }}>
           <span className="cine-eyebrow__num">03</span>
-          {isOverview ? 'Founders · The core team' : `Founders · ${counterLabel} — ${member?.name}`}
+          {isOverview ? 'Team · The core team' : `Team · ${counterLabel} — ${member?.name}`}
         </p>
 
         {!isOverview && member ? (
+          <>
           <div className="cine-founder-grid">
             <div className="cine-clip" style={{ ['--d' as string]: '120ms' }} key={`portrait-${step}`}>
               {member.photo && !member.placeholder && imgOk ? (
@@ -106,7 +122,7 @@ export default function FoundersScene({ stepParam }: { stepParam?: string }) {
                     onError={() => setImgOk(false)}
                   />
                   <span className="cine-portrait__badge" aria-hidden="true">
-                    Founder 0{index + 1}
+                    Team member 0{index + 1}
                   </span>
                 </div>
               ) : (
@@ -118,7 +134,7 @@ export default function FoundersScene({ stepParam }: { stepParam?: string }) {
               )}
             </div>
 
-            <div key={`copy-${step}`}>
+            <div className="cine-founder-details" key={`copy-${step}`}>
               <p className="cine-founder-counter cine-rise" aria-live="polite" style={{ ['--d' as string]: '80ms' }}>
                 <b>{counterLabel}</b>
                 <span className="cine-founder-counter__bar" aria-hidden="true">
@@ -137,25 +153,25 @@ export default function FoundersScene({ stepParam }: { stepParam?: string }) {
                 ))}
               </ul>
               <div className="cine-founder-nav cine-rise" style={{ ['--d' as string]: '400ms' }}>
-                <button type="button" className="cine-arrow-btn" onClick={goPrev} disabled={!prevStep} aria-label="Previous founder">
+                <button type="button" className="cine-arrow-btn" onClick={goPrev} disabled={!prevStep} aria-label="Previous team member">
                   <ArrowLeft size={18} aria-hidden="true" />
                 </button>
-                <button type="button" className="cine-arrow-btn" onClick={goNext} disabled={!nextStep} aria-label={index === 2 ? 'See the full team' : 'Next founder'}>
+                <button type="button" className="cine-arrow-btn" onClick={goNext} disabled={!nextStep} aria-label={index === 2 ? 'See the full team' : 'Next team member'}>
                   <ArrowRight size={18} aria-hidden="true" />
                 </button>
-                <div className="cine-founder-dots" role="group" aria-label="Choose founder">
+                <div className="cine-founder-dots" role="group" aria-label="Choose team member">
                   {team.map((m, i) => (
                     <button
                       key={`${m.name}-${i}`}
                       type="button"
                       aria-current={String(i) === step ? 'true' : undefined}
-                      aria-label={`Show ${m.placeholder ? `founder ${i + 1}` : m.name}`}
+                      aria-label={`Show ${m.name}`}
                       className="cine-founder-dot"
                       data-active={String(i) === step}
                       onClick={() => goStep(String(i) as TeamStep)}
                     >
                       <span className="cine-founder-dot__bar" aria-hidden="true" />
-                      {m.placeholder ? `Founder 0${i + 1}` : m.name}
+                      {m.name}
                     </button>
                   ))}
                   <button
@@ -172,13 +188,33 @@ export default function FoundersScene({ stepParam }: { stepParam?: string }) {
               </div>
             </div>
           </div>
+          <section className="cine-core-roles cine-rise" style={{ ['--d' as string]: '470ms' }} aria-labelledby="core-roles-title">
+            <div className="cine-core-roles__heading">
+              <p className="cine-mono-label">The wider signal</p>
+              <h2 id="core-roles-title">People behind the possibilities.</h2>
+              <p>A growing group of specialists bringing product, technology, design, and momentum into the same room.</p>
+            </div>
+            <div className="cine-core-roles__grid">
+              {coreRoles.map((role, i) => (
+                <article key={role.title} className="cine-core-role">
+                  <span>0{i + 1}</span>
+                  <div>
+                    <h3>{role.title}</h3>
+                    <p>{role.body}</p>
+                  </div>
+                  <b aria-hidden="true">↗</b>
+                </article>
+              ))}
+            </div>
+          </section>
+          </>
         ) : (
           <div key="overview">
             <h1 className="cine-display cine-display--sm">
               <span className="cine-line"><span style={{ ['--d' as string]: '80ms' }}>Small by design.</span></span>
             </h1>
             <p className="cine-lede cine-rise" style={{ ['--d' as string]: '200ms' }}>
-              The same founders you meet above do the work — no hand-offs. Select anyone
+              The same people you meet above do the work — no hand-offs. Select anyone
               to revisit their profile, or continue to the work.
             </p>
             <div className="cine-team-grid cine-rise" style={{ ['--d' as string]: '280ms' }}>
@@ -189,7 +225,7 @@ export default function FoundersScene({ stepParam }: { stepParam?: string }) {
                   className="cine-team-card"
                   data-active="false"
                   onClick={() => goStep(String(i) as TeamStep)}
-                  aria-label={`Revisit ${m.placeholder ? `founder ${i + 1}` : m.name}`}
+                  aria-label={`Revisit ${m.name}`}
                 >
                   <span className="cine-team-card__media">
                     {m.photo && !m.placeholder ? (
@@ -199,7 +235,7 @@ export default function FoundersScene({ stepParam }: { stepParam?: string }) {
                     )}
                   </span>
                   <span className="cine-team-card__body">
-                    <b>{m.placeholder ? `Founder 0${i + 1} · forthcoming` : m.name}</b>
+                    <b>{m.name}{m.placeholder ? ' · profile forthcoming' : ''}</b>
                     <span className="role">{m.role}</span>
                     <span className="bio">{m.bio}</span>
                   </span>
@@ -207,21 +243,21 @@ export default function FoundersScene({ stepParam }: { stepParam?: string }) {
               ))}
             </div>
             <div className="cine-founder-nav cine-rise" style={{ ['--d' as string]: '360ms' }}>
-              <button type="button" className="cine-arrow-btn" onClick={goPrev} aria-label="Previous founder">
+              <button type="button" className="cine-arrow-btn" onClick={goPrev} aria-label="Previous team member">
                 <ArrowLeft size={18} aria-hidden="true" />
               </button>
-              <div className="cine-founder-dots" role="group" aria-label="Choose founder">
+              <div className="cine-founder-dots" role="group" aria-label="Choose team member">
                 {team.map((m, i) => (
                   <button
                     key={`ov-${m.name}-${i}`}
                     type="button"
-                    aria-label={`Show ${m.placeholder ? `founder ${i + 1}` : m.name}`}
+                    aria-label={`Show ${m.name}`}
                     className="cine-founder-dot"
                     data-active={false}
                     onClick={() => goStep(String(i) as TeamStep)}
                   >
                     <span className="cine-founder-dot__bar" aria-hidden="true" />
-                    {m.placeholder ? `0${i + 1}` : m.name}
+                    {m.name}
                   </button>
                 ))}
                 <span className="cine-founder-dot" data-active="true" aria-current="true">

@@ -1,182 +1,166 @@
-import { useEffect, useRef, useState } from 'react';
-import CinematicNav from './components/CinematicNav';
-import SceneDock from './components/SceneDock';
-import HomeScene from './scenes/HomeScene';
-import AboutScene from './scenes/AboutScene';
-import FoundersScene from './scenes/FoundersScene';
-import WorkScene from './scenes/WorkScene';
-import WorkDetailScene from './scenes/WorkDetailScene';
-import ContactScene from './scenes/ContactScene';
-import { parseHash, type ParsedRoute } from './lib/route';
-import { ENTER_MS, usePrefersReducedMotion } from './lib/motion';
-import { projects } from './data/content';
+import { useLayoutEffect } from 'react';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { Flip } from 'gsap/Flip';
+import Lenis from 'lenis';
+import { initViewportFix } from './ref/lib/viewportFix';
+import Topbar from './ref/components/Topbar';
+import MenuOverlay from './ref/components/MenuOverlay';
+import Hero from './ref/components/Hero';
+import About from './ref/components/About';
+import Timeline from './ref/components/Timeline';
+// import Skills from './ref/components/Skills'; // Stack section hidden for now — restore to bring it back.
+import Projects from './ref/components/Projects';
+import TeamSection from './ref/components/TeamSection';
+import Contact from './ref/components/Contact';
+import Footer from './ref/components/Footer';
 
-function sceneTitle(route: ParsedRoute): string {
-  switch (route.scene) {
-    case 'about':
-      return 'About — AAZHI';
-    case 'team':
-      if (route.param === 'all') return 'Core team — AAZHI';
-      if (route.param === '1') return 'Anjai — AAZHI';
-      if (route.param === '2') return 'Third co-founder — AAZHI';
-      return 'Vishal — AAZHI';
-    case 'work':
-      return 'Work — AAZHI';
-    case 'work-detail': {
-      const p = projects.find((x) => x.slug === route.param);
-      return p ? `${p.title} — AAZHI` : 'Work — AAZHI';
-    }
-    case 'contact':
-      return 'Contact — AAZHI';
-    default:
-      return 'AAZHI — Technology with purpose';
-  }
-}
-
-function SceneView({ route }: { route: ParsedRoute }) {
-  switch (route.scene) {
-    case 'about':
-      return <AboutScene />;
-    case 'team':
-      return <FoundersScene stepParam={route.param} />;
-    case 'work':
-      return <WorkScene />;
-    case 'work-detail':
-      return <WorkDetailScene slug={route.param} />;
-    case 'contact':
-      return <ContactScene />;
-    default:
-      return <HomeScene />;
-  }
-}
-
-/** Tiny hash subscription hook kept local so App stays dependency-free. */
-function useHash(): string {
-  const [hash, setHash] = useState<string>(() =>
-    typeof window !== 'undefined' ? window.location.hash : '#/',
+function waitForFontsAndImages(): Promise<void> {
+  const fontsReady =
+    document.fonts && document.fonts.ready
+      ? document.fonts.ready.then(() => undefined)
+      : Promise.resolve();
+  const imgs = Array.from(document.images ?? []);
+  const imagePromises = imgs.map((img) => {
+    if (img.complete) return Promise.resolve();
+    return new Promise<void>((res) => {
+      img.addEventListener('load', () => res(), { once: true });
+      img.addEventListener('error', () => res(), { once: true });
+    });
+  });
+  return Promise.all([fontsReady, Promise.all(imagePromises)]).then(
+    () => undefined,
   );
-  useEffect(() => {
-    const onChange = () => setHash(window.location.hash);
-    window.addEventListener('hashchange', onChange);
-    return () => window.removeEventListener('hashchange', onChange);
-  }, []);
-  return hash;
 }
 
 export default function App() {
-  const hash = useHash();
-  const target = parseHash(hash);
-  const reduced = usePrefersReducedMotion();
+  useLayoutEffect(() => {
+    gsap.registerPlugin(ScrollTrigger, Flip);
 
-  const [displayed, setDisplayed] = useState<ParsedRoute>(() => parseHash());
-  const [previous, setPrevious] = useState<ParsedRoute | null>(null);
-  const [transitioning, setTransitioning] = useState(false);
-  const timer = useRef<number | null>(null);
-  const viewportRef = useRef<HTMLDivElement>(null);
+    // Stable --vh + viewport listeners (resize / orientationchange / load).
+    const viewport = initViewportFix();
 
-  // Lock the shell to the viewport (page-based, no body scroll).
-  useEffect(() => {
-    document.documentElement.classList.add('cine');
-    return () => document.documentElement.classList.remove('cine');
-  }, []);
+    // Smooth scroll, wired into GSAP's ticker like the reference.
+    const lenis = new Lenis();
+    lenis.on('scroll', () => {
+      ScrollTrigger.update();
+    });
+    const onTicker = (time: number): void => {
+      lenis.raf(time * 1000);
+    };
+    gsap.ticker.add(onTicker);
+    gsap.ticker.lagSmoothing(0);
 
-  // Canonicalise team/work hashes (e.g. '#/team' → '#/team/0') without
-  // adding history entries, so dots and back/forward stay consistent.
-  useEffect(() => {
-    const raw = window.location.hash;
-    const parsed = parseHash(raw);
-    if (raw !== parsed.hash && (parsed.scene === 'team' || parsed.scene === 'work-detail' || parsed.scene === 'home')) {
-      window.history.replaceState(null, '', parsed.hash);
-    }
-  }, []);
+    let cancelled = false;
+    let loaderTimer: number | null = null;
+    let refreshTimer: number | null = null;
 
-  // Orchestrate outgoing → incoming on every target change.
-  // `displayed` is read as the outgoing snapshot; the effect only
-  // re-runs when the target hash (or motion preference) changes, so a
-  // setDisplayed inside never retriggers it mid-transition.
-  useEffect(() => {
-    if (target.hash === displayed.hash) {
-      if (previous || transitioning) {
-        setPrevious(null);
-        setTransitioning(false);
-      }
-      return;
-    }
+    // Wait for fonts + images so ScrollTrigger measurements are correct,
+    // then refresh twice across a frame before revealing the page.
+    void waitForFontsAndImages().then(() => {
+      if (cancelled) return;
+      ScrollTrigger.refresh();
+      requestAnimationFrame(() => {
+        if (cancelled) return;
+        ScrollTrigger.refresh();
+        // Double rAF so the browser has painted after layout work.
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            if (cancelled) return;
+            const loader = document.getElementById('page-loader');
+            if (loader) {
+              loader.classList.add('hidden');
+              // Remove from DOM after the transition so it never blocks input.
+              loaderTimer = window.setTimeout(() => {
+                loader.remove();
+              }, 900);
+            }
+          });
+        });
+      });
+    });
 
-    if (timer.current !== null) {
-      window.clearTimeout(timer.current);
-      timer.current = null;
-    }
-
-    if (reduced) {
-      setPrevious(null);
-      setDisplayed(target);
-      setTransitioning(false);
-      return;
-    }
-
-    // Freeze the outgoing scene underneath, mount the incoming on top.
-    setPrevious(displayed);
-    setDisplayed(target);
-    setTransitioning(true);
-
-    timer.current = window.setTimeout(() => {
-      setPrevious(null);
-      setTransitioning(false);
-      timer.current = null;
-    }, ENTER_MS + 120);
-
-    return () => {
-      if (timer.current !== null) {
-        window.clearTimeout(timer.current);
-        timer.current = null;
+    // Clear any deep link on full load so the page always starts at top,
+    // matching the reference behaviour.
+    const onLoad = (): void => {
+      if (window.location.hash) {
+        window.setTimeout(() => {
+          try {
+            window.scrollTo({ top: 0, behavior: 'auto' });
+            history.replaceState(
+              null,
+              '',
+              window.location.pathname + window.location.search,
+            );
+          } catch {
+            // ignore
+          }
+        }, 20);
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [target.hash, reduced]);
+    window.addEventListener('load', onLoad);
 
-  // Title + scroll reset on every committed scene.
-  useEffect(() => {
-    document.title = sceneTitle(displayed);
-    const el = viewportRef.current?.querySelector('.cine-layer--incoming .cine-scene, .cine-layer--single .cine-scene');
-    if (el) {
-      el.scrollTop = 0;
-      const heading = el.querySelector('h1');
-      if (heading) {
-        (heading as HTMLElement).setAttribute('tabindex', '-1');
+    // Debounced refresh for manual resizes / rotations.
+    const debouncedRefresh = (): void => {
+      if (refreshTimer !== null) {
+        window.clearTimeout(refreshTimer);
       }
-    }
-  }, [displayed.hash]);
+      refreshTimer = window.setTimeout(() => {
+        try {
+          ScrollTrigger.refresh();
+        } catch {
+          // ignore
+        }
+      }, 120);
+    };
+    window.addEventListener('resize', debouncedRefresh, { passive: true });
+    window.addEventListener('orientationchange', debouncedRefresh, {
+      passive: true,
+    });
+
+    return () => {
+      cancelled = true;
+      if (loaderTimer !== null) {
+        window.clearTimeout(loaderTimer);
+      }
+      if (refreshTimer !== null) {
+        window.clearTimeout(refreshTimer);
+      }
+      window.removeEventListener('load', onLoad);
+      window.removeEventListener('resize', debouncedRefresh);
+      window.removeEventListener('orientationchange', debouncedRefresh);
+      gsap.ticker.remove(onTicker);
+      lenis.destroy();
+      viewport.destroy();
+    };
+  }, []);
 
   return (
-    <div className="cine-shell">
-      <a className="skip-link" href="#cine-content">Skip to content</a>
-      <CinematicNav top={displayed.top} />
-      <main
-        ref={viewportRef}
-        className="cine-viewport"
-        data-transitioning={transitioning}
-        id="cine-content"
-        tabIndex={-1}
-        aria-live="off"
-      >
-        {previous && !reduced ? (
-          <>
-            <div className="cine-layer cine-layer--outgoing" key={`out-${previous.hash}`} aria-hidden="true">
-              <SceneView route={previous} />
-            </div>
-            <div className="cine-layer cine-layer--incoming" key={`in-${displayed.hash}`}>
-              <SceneView route={displayed} />
-            </div>
-            <div className="cine-wipe" aria-hidden="true" />
-          </>
-        ) : (
-          <div className="cine-layer cine-layer--single" key={displayed.hash}>
-            <SceneView route={displayed} />
+    <>
+      <div id="page-loader" className="page-loader">
+        <div className="loader-content">
+          <div className="loader-spinner">
+            <div className="spinner-ring" />
+            <div className="spinner-ring" />
+            <div className="spinner-ring" />
           </div>
-        )}
-      </main>
-      <SceneDock route={displayed} />
-    </div>
+        </div>
+      </div>
+      <a className="skip-link" href="#home">
+        Skip to content
+      </a>
+      <Topbar />
+      <div className="text-title-animation">
+        <Hero />
+        <About />
+        <TeamSection />
+        <Timeline />
+        {/* <Skills /> — stack section hidden for now */}
+        <Projects />
+        <Contact />
+      </div>
+      <Footer />
+      <MenuOverlay />
+    </>
   );
 }

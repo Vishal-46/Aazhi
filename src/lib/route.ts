@@ -18,7 +18,7 @@ export interface ParsedRoute {
 export const SCENES: { name: SceneName; top: Route; label: string; hash: string; index: number }[] = [
   { name: 'home', top: 'home', label: 'Home', hash: '#/', index: 0 },
   { name: 'about', top: 'about', label: 'About', hash: '#/about', index: 1 },
-  { name: 'team', top: 'team', label: 'Founders', hash: '#/team', index: 2 },
+  { name: 'team', top: 'team', label: 'Team', hash: '#/team', index: 2 },
   { name: 'work', top: 'work', label: 'Work', hash: '#/work', index: 3 },
   { name: 'contact', top: 'contact', label: 'Contact', hash: '#/contact', index: 4 },
 ];

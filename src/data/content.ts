@@ -9,7 +9,7 @@ export const site = {
 export const navLinks: { label: string; href: string }[] = [
   { label: 'Home', href: '#/' },
   { label: 'About', href: '#/about' },
-  { label: 'Founders', href: '#/team/0' },
+  { label: 'Team', href: '#/team/0' },
   { label: 'Work', href: '#/work' },
   { label: 'Contact', href: '#/contact' },
 ];
@@ -136,15 +136,13 @@ export interface Member {
   placeholder: boolean;
 }
 
-// Founding team — Vishal first, then Anjai. Real photos in public/team/.
-// Third slot is an honest placeholder: no invented name, bio, or photo
-// until the founder confirms public details.
+// Founding team. Only supplied portraits are used; missing imagery stays typographic.
 export const team: Member[] = [
   {
-    name: 'Vishal',
-    role: 'Co-founder · Product & Engineering',
-    bio: 'Leads product direction and full-stack engineering — turning operational needs into simple, maintainable software.',
-    skills: ['React & TypeScript', 'API design', 'Systems thinking'],
+    name: 'Vishal N',
+    role: 'Founder CEO & COO',
+    bio: 'Shapes the product, operating rhythm, and long view of AAZHI — turning complex needs into calm, useful systems.',
+    skills: ['Product direction', 'Operations', 'Systems thinking'],
     photo: '/team/Vishal_Prof.jpg',
     photoAlt: 'Portrait of Vishal, co-founder at AAZHI',
     linkedin: '',
@@ -154,8 +152,8 @@ export const team: Member[] = [
   {
     name: 'Anjai',
     role: 'Co-founder · Design & Operations',
-    bio: 'Owns interface design and delivery — shaping clear workflows and keeping projects organised from first sketch to launch.',
-    skills: ['Interface design', 'Prototyping', 'Delivery & operations'],
+    bio: 'Turns working realities into clear interfaces, thoughtful journeys, and delivery systems people can actually live with.',
+    skills: ['Interface design', 'Prototyping', 'Delivery'],
     photo: '/team/Anjai.png',
     photoAlt: 'Portrait of Anjai, co-founder at AAZHI',
     linkedin: '',
@@ -163,15 +161,24 @@ export const team: Member[] = [
     placeholder: false,
   },
   {
-    name: 'Third co-founder',
-    role: 'Co-founder · To be introduced',
-    bio: 'The third founding voice at AAZHI. Public profile and portrait will appear here once confirmed — the work itself stays founder-led regardless.',
-    skills: ['Profile forthcoming'],
-    photoAlt: 'Portrait forthcoming for the third AAZHI co-founder',
+    name: 'Anish',
+    role: 'Co-founder · Strategy & Technology',
+    bio: 'Connects the dots between opportunity, technology, and the people a product is meant to serve.',
+    skills: ['Strategy', 'Technology', 'Partnerships'],
+    photoAlt: 'Portrait forthcoming for Anish, co-founder at AAZHI',
     linkedin: '',
     github: '',
     placeholder: true,
   },
+];
+
+export const coreRoles = [
+  { title: 'Technical Lead', body: 'Architecture, engineering quality, and the systems behind the experience.' },
+  { title: 'Product Lead', body: 'Turning real operational needs into products people can understand and use.' },
+  { title: 'Design Lead', body: 'Interface, interaction, and the details that make complexity feel lighter.' },
+  { title: 'Marketing Manager', body: 'Making useful work visible, clear, and connected to the right people.' },
+  { title: 'Partnerships', body: 'Building thoughtful relationships with clients, collaborators, and communities.' },
+  { title: 'Research & Insights', body: 'Finding the signal in messy workflows, data, and emerging opportunities.' },
 ];
 
 export const projectTypes: string[] = [

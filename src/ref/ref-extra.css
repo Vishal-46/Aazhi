@@ -1,0 +1,223 @@
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -4rem;
+  z-index: 2000;
+  background: #101010;
+  color: #edf1e8;
+  padding: 0.6rem 1.1rem;
+  border-radius: 999px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: top 0.2s ease;
+}
+
+.skip-link:focus,
+.skip-link:focus-visible {
+  top: 1rem;
+  outline: 2px solid #e3f794;
+  outline-offset: 2px;
+}
+
+/* Base font: the reference sets type per-component and leaves the rest
+   to the browser default — pin everything to the theme face. */
+body {
+  font-family: "Poppins", sans-serif;
+}
+
+/* Photos in full color: undo the reference grayscale treatments. */
+.lp-card-front,
+.lp-card-back {
+  filter: none;
+}
+.about-horizontal-slide .col img {
+  filter: none;
+}
+.certificate-page img {
+  filter: none;
+}
+
+/* About founder slides: 3 slides ride a 300%-wide track. */
+.about-horizontal-scroll-wrapper {
+  width: 300%;
+}
+.about-founder {
+  display: grid;
+  gap: 0.85rem;
+  text-align: left;
+  max-width: 34rem;
+}
+.about-founder__index {
+  display: block;
+  font-family: "Bebas Neue", cursive;
+  font-size: clamp(4.5rem, 9vw, 8rem);
+  line-height: 0.9;
+  color: transparent;
+  -webkit-text-stroke: 2px rgba(255, 255, 255, 0.45);
+}
+.about-founder .heading--medium {
+  margin: 0;
+  font-size: clamp(2rem, 4.5vw, 3.2rem);
+}
+.about-founder__role {
+  margin: 0;
+  width: fit-content;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #141414;
+  background: #e3f794;
+  border-radius: 2px;
+  padding: 0.35rem 0.8rem;
+}
+.about-founder__bio {
+  margin: 0;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.85);
+  max-width: 30rem;
+}
+.about-founder__skills {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.3rem 0 0;
+  padding: 0;
+}
+.about-founder__skills li {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 999px;
+  padding: 0.3rem 0.75rem;
+  color: rgba(255, 255, 255, 0.85);
+}
+@media (max-width: 1023px) {
+  .about-founder {
+    gap: 0.55rem;
+  }
+  .about-founder__bio {
+    font-size: 0.88rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .about-founder__skills li {
+    font-size: 0.66rem;
+  }
+}
+
+/* Team cards: compact black cards with lime role tags. */
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.25rem;
+  width: min(1080px, 92%);
+  margin: 0 auto;
+  padding: 2.5rem 0 3.5rem;
+}
+.team-card {
+  background: #0d0d0d;
+  color: #f4f3ef;
+  border: 1px solid #0d0d0d;
+  border-radius: 2px;
+  overflow: hidden;
+}
+.team-card__mark {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background: #f4f3ef;
+  border-bottom: 1px solid #0d0d0d;
+  padding: 1rem 1.5rem;
+}
+.team-card__mark-num {
+  font-family: "Bebas Neue", cursive;
+  font-size: clamp(3.5rem, 6vw, 5rem);
+  line-height: 0.9;
+  color: transparent;
+  -webkit-text-stroke: 2px #141414;
+}
+.team-card__mark-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(20, 20, 20, 0.55);
+  text-align: right;
+}
+.team-card__body {
+  padding: 1.25rem 1.25rem 1.5rem;
+  display: grid;
+  gap: 0.55rem;
+  align-content: start;
+}
+.team-card__name {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+.team-card__role {
+  margin: 0;
+  width: fit-content;
+  background: #e3f794;
+  color: #141414;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.3rem 0.7rem;
+  border-radius: 2px;
+}
+.team-card__bio {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: rgba(244, 243, 239, 0.8);
+}
+.team-card__skills {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin: 0.35rem 0 0;
+  padding: 0;
+}
+.team-card__skills li {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border: 1px solid rgba(244, 243, 239, 0.35);
+  border-radius: 999px;
+  padding: 0.28rem 0.7rem;
+  color: rgba(244, 243, 239, 0.85);
+}
+@media (max-width: 900px) {
+  .team-grid {
+    grid-template-columns: minmax(0, 1fr);
+    max-width: 430px;
+  }
+}
+/* Hero: minimal sub-line + proof line (replaces the stat boxes). */
+.lp-sub {
+  margin-top: 1.25rem;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: #3d3d3d;
+  max-width: 34rem;
+  margin-inline: auto;
+}
+.lp-proof {
+  margin-top: 1.75rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(20, 20, 20, 0.55);
+}
